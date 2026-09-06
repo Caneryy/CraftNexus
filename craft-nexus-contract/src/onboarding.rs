@@ -60,9 +60,10 @@
 //! - `UserVerified`, `UsernameChanged`, and `PortfolioUpdated` carry only the
 //!   address; fetch the current value via [`OnboardingContract::get_user`] when
 //!   the new field value is needed.
-//! - `UserOnboarded` is emitted exactly once per address — a second
-//!   `onboard_user` call for the same address panics with
-//!   [`Error::AlreadyOnboarded`] and emits nothing.
+//! - `UserOnboarded` is emitted exactly once per address. An identical
+//!   `onboard_user` retry returns the canonical profile and repairs missing
+//!   secondary state without emitting another event. A retry with a different
+//!   username or role panics with [`Error::AlreadyOnboarded`] (#929).
 //!
 //! ## Cross-contract interface
 //!
@@ -3110,7 +3111,8 @@ impl OnboardingContract {
     /// # Errors (panic)
     /// * [`Error::NotInitialized`] — `initialize` has not been called.
     /// * [`Error::InvalidRole`] — `role` is not `Buyer` or `Artisan`.
-    /// * [`Error::AlreadyOnboarded`] — the address already has a profile.
+    /// * [`Error::AlreadyOnboarded`] — the address already has a profile with a
+    ///   different username or role.
     /// * [`Error::UsernameTaken`] — the normalized username is in use.
     /// * [`Error::UsernameTooShort`] / [`Error::UsernameTooLong`].
     pub fn onboard_user(env: Env, user: Address, username: String, role: UserRole) -> UserProfile {
