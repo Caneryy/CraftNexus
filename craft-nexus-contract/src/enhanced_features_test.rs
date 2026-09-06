@@ -164,6 +164,22 @@ fn test_profile_deactivation_success() {
 }
 
 #[test]
+fn test_onboarding_retry_preserves_deactivated_status() {
+    let env = Env::default();
+    let (_, onboarding, buyer, _, _, _, _, _) = setup_enhanced_test(&env);
+
+    onboarding.deactivate_profile(&buyer);
+    let active_count = onboarding.get_active_user_count();
+
+    let retried =
+        onboarding.onboard_user(&buyer, &String::from_str(&env, "buyer"), &UserRole::Buyer);
+
+    assert_eq!(retried.status, ProfileStatus::Deactivated);
+    assert_eq!(onboarding.get_active_user_count(), active_count);
+    assert!(!onboarding.is_username_taken(&String::from_str(&env, "buyer")));
+}
+
+#[test]
 #[should_panic]
 fn test_profile_deactivation_fails_with_active_traditional_escrow() {
     let env = Env::default();
