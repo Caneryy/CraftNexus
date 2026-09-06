@@ -4931,7 +4931,8 @@ impl OnboardingContract {
     /// None.
     ///
     /// # Errors
-    /// None.
+    /// - Panics with [`Error::NotInitialized`] when the contract configuration is absent.
+    /// - Fails authorization unless the configured `platform_admin` signs the invocation.
     pub fn get_verification_queue(env: Env) -> Vec<Address> {
         let config: OnboardingConfig = env
             .storage()
